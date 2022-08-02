@@ -1,8 +1,10 @@
 function sim1 = sim_basic_IVA(seed,K,V,M_Tot,N,Acond,SNR)
+
+
 % MISA
 % seed    = [];
 %N       = 200000;
-% % S_ = {};
+% S_ = {};
 % for kk = 1:length(C)
 %     S_{kk} = sum(C(1:(kk-1)))+(1:C(kk));
 % end
@@ -15,7 +17,7 @@ for mm = 1:M_Tot
 end
 cr = linspace(.65,.85,K);
 for kk = 1:K
-    dist_params(kk).name = 'mvn';
+    dist_params(kk).name = 'gcp';
     dist_params(kk).mu   = zeros(sum([S_{kk,:}] ~= 0),1);
     dist_params(kk).CORR = cr(kk); % Ignored for ICA
 end
