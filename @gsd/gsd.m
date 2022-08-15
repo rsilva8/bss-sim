@@ -87,6 +87,7 @@ classdef gsd
             obj.ut = utils;
             SCV = cell(1, obj.K);
             for kk = 1:obj.K
+                % Get SCV distribution name:
                 switch(lower(dist_params(kk).name))
                     case 'mvn'
                         obj.dist(kk).name = 'Multivariate Normal';
@@ -108,7 +109,7 @@ classdef gsd
                         
                 end
                 % Setup SCV distribution parameters:
-                obj.dist(kk).mu = dist_params(kk).mu;                               % SCV mean
+                obj.dist(kk).mu = dist_params(kk).mu; % SCV mean
                 if obj.d(kk) == 1
                     obj.dist(kk).r = 1;
                     obj.dist(kk).R = 1;
@@ -118,7 +119,36 @@ classdef gsd
                         [0 (1-eps)], options);                                          % max. corr.
                     obj.dist(kk).R = toeplitz(obj.dist(kk).r.^linspace(0,1,obj.d(kk))); % SCV correlation
                 end
+                % Get marginal info (only if SCV dimension is > 1):
+                if obj.d(kk) > 1 && ...
+                   strcmpi(obj.dist(kk).name, 'Gaussian Copula')
+                    for cc = 1:obj.d(kk)
+                        obj.dist(kk).gcp_marginals(cc).name = dist_params(kk).gcp_marginals(cc).name;
+                        % dist_params(kk).gcp_marginals(cc).mu % ignored input
+                        obj.dist(kk).gcp_marginals(cc).mu = obj.dist(kk).mu(cc);
+                        switch(lower(obj.dist(kk).gcp_marginals(cc).name))
+                            case 'laplace'
+                                obj.dist(kk).gcp_marginals(cc).sd = dist_params(kk).gcp_marginals(cc).sd;
+                            case 'logistic'
+                                obj.dist(kk).gcp_marginals(cc).sd = dist_params(kk).gcp_marginals(cc).sd;
+                            case 'normal'
+                                obj.dist(kk).gcp_marginals(cc).sd = dist_params(kk).gcp_marginals(cc).sd;
+                            case 'uniform'
+                                obj.dist(kk).gcp_marginals(cc).sd = dist_params(kk).gcp_marginals(cc).sd;
+                            case 'beta'
+                                obj.dist(kk).gcp_marginals(cc).sd = dist_params(kk).gcp_marginals(cc).sd;
+                                obj.dist(kk).gcp_marginals(cc).a = dist_params(kk).gcp_marginals(cc).a;
+                                obj.dist(kk).gcp_marginals(cc).b = dist_params(kk).gcp_marginals(cc).b;
+                            case 'bimodal_gamma'
+                                obj.dist(kk).gcp_marginals(cc).a = dist_params(kk).gcp_marginals(cc).a;
+                                obj.dist(kk).gcp_marginals(cc).b = dist_params(kk).gcp_marginals(cc).b;
+                            otherwise
+                                error('Invalid distribution name.');
+                        end
+                    end
+                end
                 
+                % Start sampling:
                 switch(obj.dist(kk).name)
                     case 'Multivariate Normal'
                         SCV{kk} = mvnrnd(obj.dist(kk).mu',obj.dist(kk).R,obj.N);
@@ -147,16 +177,32 @@ classdef gsd
                             obj.ut.mymvk(obj.dist(kk).mu,obj.dist(kk).R,obj.N,obj.dist(kk).a,obj.dist(kk).b);
                         
                     case 'Multivariate Power Exponential'
-                        
+                        error('Multivariate Power Exponential distribution is not implemented!')
                     case 'Multivatiate Kotz'
-                        
+                        error('Multivariate Power Exponential distribution is not implemented!')
                     case 'Gaussian Copula'
                         U = copularnd('Gaussian',obj.dist(kk).R,obj.N);
                         out = zeros(size(U));
-                        alpha = sqrt(size(U,2) + 1);
+                        % alpha = sqrt(size(U,2) + 1); % OLD stddev default
                         for cc = 1:size(U,2)
-                            % Univariate paramters
-                            out(:,cc) = obj.ut.myicdf('laplace', U(:,cc), obj.dist(kk).mu(cc), alpha);
+                            % Univariate parameters
+                            gcp_m = obj.dist(kk).gcp_marginals(cc);
+                            switch(lower(gcp_m.name))
+                                case 'laplace'
+                                    out(:,cc) = obj.ut.myicdf(gcp_m.name, U(:,cc), gcp_m.mu, gcp_m.sd);
+                                case 'logistic'
+                                    out(:,cc) = obj.ut.myicdf(gcp_m.name, U(:,cc), gcp_m.mu, gcp_m.sd);
+                                case 'normal'
+                                    out(:,cc) = obj.ut.myicdf(gcp_m.name, U(:,cc), gcp_m.mu, gcp_m.sd);
+                                case 'uniform'
+                                    out(:,cc) = obj.ut.myicdf(gcp_m.name, U(:,cc), gcp_m.mu, gcp_m.sd);
+                                case 'beta'
+                                    out(:,cc) = obj.ut.myicdf(gcp_m.name, U(:,cc), gcp_m.mu, gcp_m.sd, gcp_m.a, gcp_m.b);
+                                case 'bimodal_gamma'
+                                    out(:,cc) = obj.ut.myicdf(gcp_m.name, U(:,cc), gcp_m.a, gcp_m.b, gcp_m.mu);
+                                otherwise
+                                    error('Invalid distribution name.');
+                            end
                         end
                         SCV{kk} = out;
                         

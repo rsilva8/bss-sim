@@ -20,10 +20,23 @@ switch(lower(name))
         m = varargin{1};
         s = varargin{2};
         X = icdf('norm',U,m,s);
+    case 'beta'
+        m = varargin{1};
+        sd = varargin{2};
+        a = varargin{3};
+        b = varargin{4};
+        s = (a*b)/(((a+b)^2)*(a+b+1));
+        X = icdf('Beta',U,a,b);
+        X = X - (a/(a+b));
+        X = (X * (sd/s)) + m;
     case 'uniform'
-        a = varargin{1};
-        b = varargin{2};
-        X = (b-a)*(U - .5) + mean([a,b]);
+        m = varargin{1};
+        sd = varargin{2};
+        v = 1/sqrt(12);
+        X = (sd/v)*(U - .5) + m;
+        % a = varargin{1};
+        % b = varargin{2};
+        % X = (b-a)*(U - .5) + mean([a,b]);
     case 'gev'
         e = varargin{1};
         s = varargin{2};
@@ -95,7 +108,8 @@ out = fzero(fun,x0,options);
 end
 
 function out = find_icdfgam(u,a,b,m)
-fun = @(x) .5*cdf('gam',x+(a-1)*b-m,a,b) + .5*(1-cdf('gam',-x+(a-1)*b-m,a,b)) - u;
+% fun = @(x) .5*cdf('gam',x+(a-1)*b-m,a,b) + .5*(1-cdf('gam',-x+(a-1)*b-m,a,b)) - u;
+fun = @(x) .5*cdf('gam',x-m,a,b) + .5*(1-cdf('gam',-x-m,a,b)) - u;
 x0 = 0;
 %if icdf('gam',u,a,b)-(a-1)*b+m;
 options = optimset('FunValCheck','on', 'MaxFunEvals',10000, 'MaxIter',10000, 'TolX',1e-25);
