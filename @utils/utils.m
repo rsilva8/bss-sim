@@ -26,6 +26,7 @@ classdef utils
         optprob = getop(w0,varargin)
         X = myicdf(name,U,varargin)
         [Ywht,whtM,dewhtM,Ybr,brM,debrM] = myPCA(Y)
+        [outputArg] = myCCA(X,varargin)
     end
 end % End of classdef
 

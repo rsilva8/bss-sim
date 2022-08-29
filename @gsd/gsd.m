@@ -183,6 +183,7 @@ classdef gsd
                     case 'Gaussian Copula'
                         if strcmpi('beta', lower(obj.dist(kk).gcp_marginals(cc).name))
                             % Beta icdf somehow affects (reduces) final correlation
+                            % TODO: Check that the final correlation is not above 1
                             U = copularnd('Gaussian',obj.dist(kk).R+[0 .13; .13 0],obj.N);
                         else
                             U = copularnd('Gaussian',obj.dist(kk).R,obj.N);
