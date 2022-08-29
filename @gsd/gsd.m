@@ -181,7 +181,12 @@ classdef gsd
                     case 'Multivatiate Kotz'
                         error('Multivariate Power Exponential distribution is not implemented!')
                     case 'Gaussian Copula'
-                        U = copularnd('Gaussian',obj.dist(kk).R,obj.N);
+                        if strcmpi('beta', lower(obj.dist(kk).gcp_marginals(cc).name))
+                            % Beta icdf somehow affects (reduces) final correlation
+                            U = copularnd('Gaussian',obj.dist(kk).R+[0 .13; .13 0],obj.N);
+                        else
+                            U = copularnd('Gaussian',obj.dist(kk).R,obj.N);
+                        end
                         out = zeros(size(U));
                         % alpha = sqrt(size(U,2) + 1); % OLD stddev default
                         for cc = 1:size(U,2)

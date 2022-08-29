@@ -5,7 +5,7 @@ V = size(Y1,2);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PCA of Y1, with ordering by descending variance:
 % Covariance matrix of Y1
-C1 = (Y1*Y1')./(V-1);
+C1 = cov(Y1'); %(Y1*Y1')./(V-1);
 % SVD Decomposition of C1
 %[U,s,V] = svd(C1);
 % Eigval Decomp of C1

@@ -25,10 +25,12 @@ switch(lower(name))
         sd = varargin{2};
         a = varargin{3};
         b = varargin{4};
-        s = (a*b)/(((a+b)^2)*(a+b+1));
+        s = sqrt((a*b)/(((a+b)^2)*(a+b+1)));
         X = icdf('Beta',U,a,b);
         X = X - (a/(a+b));
-        X = (X * (sd/s)) + m;
+        off = mean(X);
+        X = X - off;
+        X = (X * (sd/s)) + m + off;
     case 'uniform'
         m = varargin{1};
         sd = varargin{2};
@@ -71,7 +73,9 @@ switch(lower(name))
         if sd <= 0
             error('Parameter value out of valid range.');
         end
-        X = m - sd*sign(U).*log(1 - 2*abs(U));
+        X = -sign(U).*log(1 - 2*abs(U));
+        off = mean(X);
+        X = (sd/sqrt(2))*(X - off) + m + off;
     case 'loglap'
         U = ((.98.*(U-1/2))+1/2);
         a = varargin{1};
@@ -82,11 +86,13 @@ switch(lower(name))
         X(U > q) = d*((((U(U > q)-1).*(-1)).*((a+b)/b)).^(-1/a));
     case 'logistic'
         m = varargin{1};
-        b = varargin{2};
-        if b <= 0
+        sd = varargin{2};
+        if sd <= 0
             error('Parameter value out of valid range.');
         end
-        X = m + b*log( U./(1-U) );
+        X = log( U./(1-U) );
+        off = mean(X);
+        X = (sd/(pi/sqrt(3)))*(X - off) + m + off;
     case 'hypbsec'
         X = (-2/pi)*asinh( cot(pi*U) );
     case 'cauchy'
